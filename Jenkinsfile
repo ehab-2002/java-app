@@ -1,5 +1,5 @@
 // Jenkinsfile (Declarative + Scripted + SharedLib + Parameters + Parallel)
-@Library('my-shared-lib') _  // اسم الـ Shared Library اللي هتعمله
+@Library('ci-shared-lib') _  // اسم الـ Shared Library اللي هتعمله
 
 pipeline {
     agent any
