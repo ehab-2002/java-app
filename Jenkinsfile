@@ -1,33 +1,67 @@
+// Jenkinsfile (Declarative + Scripted + SharedLib + Parameters + Parallel)
+@Library('my-shared-lib') _  // اسم الـ Shared Library اللي هتعمله
+
 pipeline {
     agent any
 
+    // Parameters for build
+    parameters {
+        string(name: 'DOCKER_IMAGE', defaultValue: 'ehabfarid1/java-app', description: 'Docker image name')
+        booleanParam(name: 'SKIP_TESTS', defaultValue: true, description: 'Skip Maven tests?')
+    }
+
     environment {
-        DOCKER_IMAGE = "ehabfarid1/java-app"
+        MAVEN_HOME = tool 'Maven3'
+        JAVA_HOME = tool 'Java11'
     }
 
     stages {
-        stage('Build Docker Image') {
-            steps {
-                script {
-                    sh "docker build -t ${DOCKER_IMAGE} ."
+        stage('Build') {
+            parallel {
+                stage('Build Jar') {
+                    steps {
+                        script {
+                            def skipTests = params.SKIP_TESTS ? '-DskipTests' : ''
+                            sh "${MAVEN_HOME}/bin/mvn clean package ${skipTests}"
+                        }
+                    }
+                }
+                stage('Static Analysis') {
+                    steps {
+                        script {
+                            echo "Running static analysis..."
+                            // ممكن تحط أي أدوات زي SonarQube هنا
+                        }
+                    }
                 }
             }
         }
 
-        stage('Login to DockerHub') {
+        stage('Docker Build & Push') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-cred', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
+                script {
+                    // Build Docker Image
+                    dockerLib.buildDockerImage(params.DOCKER_IMAGE, env.BUILD_NUMBER)
+                    
+                    // Login to DockerHub
+                    dockerLib.loginDocker('dockerhub-cred')
+                    
+                    // Push Docker Image
+                    dockerLib.pushDockerImage(params.DOCKER_IMAGE, env.BUILD_NUMBER)
                 }
             }
         }
+    }
 
-        stage('Push Docker Image') {
-            steps {
-                script {
-                    sh "docker push ${DOCKER_IMAGE}"
-                }
-            }
+    post {
+        always {
+            cleanWs()
+        }
+        success {
+            echo "Pipeline succeeded!"
+        }
+        failure {
+            echo "Pipeline failed!"
         }
     }
 }
