@@ -40,14 +40,14 @@ pipeline {
         stage('Docker Build & Push') {
             steps {
                 script {
-                    // Build Docker Image
-                    dockerLib.buildDockerImage(params.DOCKER_IMAGE, env.BUILD_NUMBER)
-                    
-                    // Login to DockerHub
-                    dockerLib.loginDocker('dockerhub-cred')
-                    
-                    // Push Docker Image
-                    dockerLib.pushDockerImage(params.DOCKER_IMAGE, env.BUILD_NUMBER)
+                       // Build Docker Image
+                       dockerHelper.buildImage("${params.DOCKER_IMAGE}:${env.BUILD_NUMBER}")
+            
+            // Login to DockerHub
+                      dockerHelper.loginDocker('dockerhub-cred')
+            
+            // Push Docker Image
+                      dockerHelper.pushImage("${params.DOCKER_IMAGE}:${env.BUILD_NUMBER}")
                 }
             }
         }
