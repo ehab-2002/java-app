@@ -41,13 +41,13 @@ pipeline {
             steps {
                 script {
                        // Build Docker Image
-                       dockerHelper.buildImage("${params.DOCKER_IMAGE}:${env.BUILD_NUMBER}")
+                       dockerHelper.buildImage("${params.DOCKER_IMAGE}-${env.BUILD_NUMBER}")
             
             // Login to DockerHub
                       dockerHelper.loginDocker('dockerhub-cred')
             
             // Push Docker Image
-                      dockerHelper.pushImage("${params.DOCKER_IMAGE}:${env.BUILD_NUMBER}")
+                      dockerHelper.pushImage("${params.DOCKER_IMAGE}-${env.BUILD_NUMBER}")
                 }
             }
         }
