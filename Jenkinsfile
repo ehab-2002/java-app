@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = "ehabfarid/java-app"
+        DOCKER_IMAGE = "ehabfarid1/java-app"
     }
 
     stages {
